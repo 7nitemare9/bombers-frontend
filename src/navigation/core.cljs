@@ -4,10 +4,40 @@
             [om.dom :as dom :include-macros true]
             [goog.events :as events]
             [goog.history.EventType :as EventType]
-            [bombers.core :as bombers])
+            [bombers.core :as bombers]
+            [Lineup.core :as lineup])
   (:import goog.History))
 
 (sec/set-config! :prefix "#")
+
+(defn navigation-view [_ _]
+  (reify
+    om/IRender
+    (render [_]
+       (dom/div nil
+          (dom/a #js {:href "#/"}
+                 "Home")
+          (dom/a #js {:href "#/lineup"}
+                 "Lineup")
+          (dom/a #js {:href "#/fanzone"}
+                       "Fanzone")))))
+
+(sec/defroute index-page "/" []
+  (bombers/test))
+
+(sec/defroute default "" []
+  (bombers/test))
+
+(sec/defroute lineup-page "/lineup" []
+  (lineup/start))
+
+(sec/defroute player-page "/player/:id" {id :id}
+  (.log js/console (str "user" id))
+  (lineup/show-player id))
+
+
+(om/root navigation-view {}
+         {:target (. js/document (getElementById "navbar"))})
 
 (let [history (History.)
       navigation EventType/NAVIGATE]
@@ -15,22 +45,3 @@
                       navigation
                       #(-> % .-token sec/dispatch!))
   (doto history (.setEnabled true)))
-
-(defn navigation-view [_ _]
-  (reify
-    om/IRender
-    (render [_]
-       (dom/div
-          (dom/a #js {:href "#/"}
-                 "Home")
-          (dom/a #js {:href "#/something"}
-                 "Something")
-          (dom/a #js {:href "#/about"}
-                       "About")))))
-
-(sec/defroute index-page "/something" []
-  (bombers/test))
-
-
-(om/root navigation-view {}
-         {:target (. js/document (getElementById "navbar"))})
